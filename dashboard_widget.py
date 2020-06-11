@@ -39,71 +39,89 @@ base_params["BoroCnstArt"] = None  # No artificial borrowing constraint
 
 
 # Define a slider for the discount factor
-DiscFac_widget = widgets.FloatSlider(
-    min=0.9,
-    max=0.99,
-    step=0.0002,
-    value=DiscFac,  # Default value
-    continuous_update=False,
-    readout_format=".4f",
-    description="\u03B2",
-)  # beta unicode
+DiscFac_widget = [
+    widgets.FloatSlider(
+        min=0.9,
+        max=0.99,
+        step=0.0002,
+        value=DiscFac,  # Default value
+        continuous_update=False,
+        readout_format=".4f",
+        description="\u03B2",
+    )
+    for i in range(5)
+]  # beta unicode
 
 # Define a slider for relative risk aversion
-CRRA_widget = widgets.FloatSlider(
-    min=1.0,
-    max=5.0,
-    step=0.01,
-    value=CRRA,  # Default value
-    continuous_update=False,
-    readout_format=".2f",
-    description="\u03C1",
-)  # rho unicode
+CRRA_widget = [
+    widgets.FloatSlider(
+        min=1.0,
+        max=5.0,
+        step=0.01,
+        value=CRRA,  # Default value
+        continuous_update=False,
+        readout_format=".2f",
+        description="\u03C1",
+    )
+    for i in range(5)
+]  # rho unicode
 
 # Define a slider for the interest factor
-Rfree_widget = widgets.FloatSlider(
-    min=1.01,
-    max=1.08,
-    step=0.001,
-    value=Rfree,  # Default value
-    continuous_update=False,
-    readout_format=".4f",
-    description="R",
-)
+Rfree_widget = [
+    widgets.FloatSlider(
+        min=1.01,
+        max=1.08,
+        step=0.001,
+        value=Rfree,  # Default value
+        continuous_update=False,
+        readout_format=".4f",
+        description="R",
+    )
+    for i in range(5)
+]
 
 
 # Define a slider for permanent income growth
-PermGroFac_widget = widgets.FloatSlider(
-    min=1.00,
-    max=1.08,
-    step=0.001,
-    value=PermGroFac,  # Default value
-    continuous_update=False,
-    readout_format=".4f",
-    description="\u0393",
-)  # capital gamma
+PermGroFac_widget = [
+    widgets.FloatSlider(
+        min=1.00,
+        max=1.08,
+        step=0.001,
+        value=PermGroFac,  # Default value
+        continuous_update=False,
+        readout_format=".4f",
+        description="\u0393",
+    )
+    for i in range(5)
+]  # capital gamma
 
 # Define a slider for unemployment (or retirement) probability
-UnempPrb_widget = widgets.FloatSlider(
-    min=0.0001,
-    max=0.01,  # Go up to twice the default value
-    step=0.00001,
-    value=UnempPrb,
-    continuous_update=False,
-    readout_format=".5f",
-    description="℘",
-)
+UnempPrb_widget = [
+    widgets.FloatSlider(
+        min=0.0001,
+        max=0.01,  # Go up to twice the default value
+        step=0.00001,
+        value=UnempPrb,
+        continuous_update=False,
+        readout_format=".5f",
+        description="℘",
+    )
+    for i in range(5)
+]
 
 # Define a slider for unemployment (or retirement) probability
-IncUnemp_widget = widgets.FloatSlider(
-    min=0.0001,
-    max=0.01,  # Go up to twice the default value
-    step=0.00001,
-    value=IncUnemp,
-    continuous_update=False,
-    readout_format=".5f",
-    description="$\\mho$",
-)
+IncUnemp_widget = [
+    widgets.FloatSlider(
+        min=0.0001,
+        max=0.01,  # Go up to twice the default value
+        step=0.00001,
+        value=IncUnemp,
+        continuous_update=False,
+        readout_format=".5f",
+        description="$\\mho$",
+    )
+    for i in range(5)
+]
 
 
 def makeConvergencePlot(DiscFac, CRRA, Rfree, PermGroFac, UnempPrb):
@@ -194,7 +212,6 @@ def makeGICFailExample(Rfree, PermGroFac):
     plt.figure(figsize=(12, 8))
     plt.plot(m, c_m, label="$c(m_{t})$")
     plt.plot(m, E_m, label="$\mathsf{E}_{t}[\Delta m_{t+1}] = 0$")
-    plt.legend()
     plt.xlim(0, 5.5)
     plt.ylim(0, 1.6)
     plt.tick_params(
@@ -205,101 +222,12 @@ def makeGICFailExample(Rfree, PermGroFac):
         bottom="off",
         top="off",
     )
+    plt.legend()
     plt.show()
     return None
 
 
-# Define a function to construct the arrows on the consumption growth rate function
-def arrowplot(x, y, narrs=15, dspace=0.5, direc="neg", hl=0.01, hw=3, c="black"):
-    """
-    The function is used to plot arrows given the data x and y.
-
-    Input:
-        narrs  :  Number of arrows that will be drawn along the curve
-
-        dspace :  Shift the position of the arrows along the curve.
-                  Should be between 0. and 1.
-
-        direc  :  can be 'pos' or 'neg' to select direction of the arrows
-
-        hl     :  length of the arrow head
-
-        hw     :  width of the arrow head
-
-        c      :  color of the edge and face of the arrow head
-    """
-
-    # r is the distance spanned between pairs of points
-    r = np.sqrt(np.diff(x) ** 2 + np.diff(y) ** 2)
-    r = np.insert(r, 0, 0.0)
-
-    # rtot is a cumulative sum of r, it's used to save time
-    rtot = np.cumsum(r)
-
-    # based on narrs set the arrow spacing
-    aspace = r.sum() / narrs
-
-    if direc is "neg":
-        dspace = -1.0 * abs(dspace)
-    else:
-        dspace = abs(dspace)
-
-    arrowData = []  # will hold tuples of x,y,theta for each arrow
-    arrowPos = aspace * (dspace)  # current point on walk along data
-    # could set arrowPos to 0 if you want
-    # an arrow at the beginning of the curve
-
-    ndrawn = 0
-    rcount = 1
-    while arrowPos < r.sum() and ndrawn < narrs:
-        x1, x2 = x[rcount - 1], x[rcount]
-        y1, y2 = y[rcount - 1], y[rcount]
-        da = arrowPos - rtot[rcount]
-        theta = np.arctan2((x2 - x1), (y2 - y1))
-        ax = np.sin(theta) * da + x1
-        ay = np.cos(theta) * da + y1
-        arrowData.append((ax, ay, theta))
-        ndrawn += 1
-        arrowPos += aspace
-        while arrowPos > rtot[rcount + 1]:
-            rcount += 1
-            if arrowPos > rtot[-1]:
-                break
-
-    for ax, ay, theta in arrowData:
-        # use aspace as a guide for size and length of things
-        # scaling factors were chosen by experimenting a bit
-
-        dx0 = np.sin(theta) * hl / 2.0 + ax
-        dy0 = np.cos(theta) * hl / 2.0 + ay
-        dx1 = -1.0 * np.sin(theta) * hl / 2.0 + ax
-        dy1 = -1.0 * np.cos(theta) * hl / 2.0 + ay
-
-        if direc is "neg":
-            ax0 = dx0
-            ay0 = dy0
-            ax1 = dx1
-            ay1 = dy1
-        else:
-            ax0 = dx1
-            ay0 = dy1
-            ax1 = dx0
-            ay1 = dy0
-
-        plt.annotate(
-            "",
-            xy=(ax0, ay0),
-            xycoords="data",
-            xytext=(ax1, ay1),
-            textcoords="data",
-            arrowprops=dict(headwidth=hw, frac=1.0, ec=c, fc=c),
-        )
-    plt.plot(x, y, color=c)
-    plt.xlim(x.min() * 0.9, x.max() * 1.1)
-    plt.ylim(y.min() * 0.9, y.max() * 1.1)
-
-
-def makesomethingplot(Rfree, PermGroFac, DiscFac, CRRA):
+def makeGrowthplot(Rfree, PermGroFac, DiscFac, CRRA):
     # cycles=0 tells the solver to find the infinite horizon solution
 
     baseEx_inf = IndShockConsumerType(cycles=0, **base_params)
@@ -409,3 +337,126 @@ def makesomethingplot(Rfree, PermGroFac, DiscFac, CRRA):
     )
     plt.legend()
     plt.show()
+
+
+def makeBoundsfig(Rfree, PermGroFac, DiscFac, CRRA):
+    baseEx_inf = IndShockConsumerType(cycles=0, **base_params)
+    baseEx_inf.Rfree = Rfree
+    baseEx_inf.PermGroFac = [PermGroFac]
+    baseEx_inf.CRRA = CRRA
+    baseEx_inf.DiscFac = DiscFac
+    baseEx_inf.solve()
+    baseEx_inf.unpackcFunc()
+
+    k_lower = 1.0 - (baseEx_inf.Rfree ** (-1.0)) * (
+        baseEx_inf.Rfree * baseEx_inf.DiscFac
+    ) ** (1.0 / baseEx_inf.CRRA)
+    h_inf = 1.0 / (1.0 - baseEx_inf.PermGroFac[0] / baseEx_inf.Rfree)
+    conFunc_PF = lambda m: (h_inf - 1) * k_lower + k_lower * m
+    conFunc_upper = (
+        lambda m: (
+            1
+            - baseEx_inf.UnempPrb ** (1.0 / baseEx_inf.CRRA)
+            * (baseEx_inf.Rfree * baseEx_inf.DiscFac) ** (1.0 / baseEx_inf.CRRA)
+            / baseEx_inf.Rfree
+        )
+        * m
+    )
+    conFunc_lower = (
+        lambda m: (
+            1
+            - (baseEx_inf.Rfree * baseEx_inf.DiscFac) ** (1.0 / baseEx_inf.CRRA)
+            / baseEx_inf.Rfree
+        )
+        * m
+    )
+    intersect_m = ((h_inf - 1) * k_lower) / (
+        (
+            1
+            - baseEx_inf.UnempPrb ** (1.0 / baseEx_inf.CRRA)
+            * (baseEx_inf.Rfree * baseEx_inf.DiscFac) ** (1.0 / baseEx_inf.CRRA)
+            / baseEx_inf.Rfree
+        )
+        - k_lower
+    )
+
+    cMaxLabel = r"c̅$(m) = (m-1+h)κ̲$"  # Use unicode kludge
+    cMinLabel = r"c̲$(m)= (1-\Phi_{R})m = κ̲ m$"
+
+    x1 = np.linspace(0, 25, 1000)
+    x3 = np.linspace(0, intersect_m, 300)
+    x4 = np.linspace(intersect_m, 25, 700)
+    cfunc_m = baseEx_inf.cFunc[0](x1)
+    cfunc_PF_1 = conFunc_PF(x3)
+    cfunc_PF_2 = conFunc_PF(x4)
+    cfunc_upper_1 = conFunc_upper(x3)
+    cfunc_upper_2 = conFunc_upper(x4)
+    cfunc_lower = conFunc_lower(x1)
+    plt.figure(figsize=(12, 8))
+    plt.plot(x1, cfunc_m, label="c(m)")
+    plt.plot(x1, cfunc_lower, label=cMinLabel, linewidth=2.5)
+    plt.plot(x3, cfunc_upper_1, color="black", linewidth=2.5)
+    plt.plot(
+        x4,
+        cfunc_PF_2,
+        color="black",
+        label=r"Upper Bound $ = $ Min $[\overline{\overline{c}}(m),\overline{c}(m)]$",
+        linewidth=2.5,
+    )
+    plt.plot(x4, cfunc_upper_2, label="c̅(m) = κ̅m = (1 - ℘^(1/ρ)Φᵣ)m", linestyle="--")
+    plt.plot(x3, cfunc_PF_1, label=cMaxLabel, linestyle="--")
+    plt.tick_params(
+        labelbottom=False,
+        labelleft=False,
+        left="off",
+        right="off",
+        bottom="off",
+        top="off",
+    )
+    plt.xlim(0, 25)
+    plt.ylim(0, 1.12 * conFunc_PF(25))
+    plt.text(0, 1.12 * conFunc_PF(25) + 0.05, "$c$", fontsize=22)
+    plt.xlabel("m", fontsize=22)
+    plt.legend()
+
+
+def makeTargetMfig(Rfree, PermGroFac, DiscFac, CRRA):
+    baseEx_inf = IndShockConsumerType(cycles=0, **base_params)
+    baseEx_inf.Rfree = Rfree
+    baseEx_inf.PermGroFac = [PermGroFac]
+    baseEx_inf.CRRA = CRRA
+    baseEx_inf.DiscFac = DiscFac
+    baseEx_inf.solve()
+    baseEx_inf.unpackcFunc()
+    m1 = np.linspace(0, 4, 1000)
+    cfunc_m = baseEx_inf.cFunc[0](m1)
+    mSSfunc = (
+        lambda m: (baseEx_inf.PermGroFac[0] / baseEx_inf.Rfree)
+        + (1.0 - baseEx_inf.PermGroFac[0] / baseEx_inf.Rfree) * m
+    )
+    mss = mSSfunc(m1)
+    plt.figure(figsize=(12, 8))
+    plt.plot(m1, cfunc_m, label="$c(m_{t})$")
+    plt.plot(m1, mss, label="$\mathsf{E}_{t}[\Delta m_{t+1}] = 0$")
+    plt.xlim(0, 3)
+    plt.ylim(0, 1.45)
+    plt.plot(
+        [baseEx_inf.solution[0].mNrmSS, baseEx_inf.solution[0].mNrmSS],
+        [0, 2.5],
+        color="black",
+        linestyle="--",
+    )
+    plt.tick_params(
+        labelbottom=False,
+        labelleft=False,
+        left="off",
+        right="off",
+        bottom="off",
+        top="off",
+    )
+    plt.text(0, 1.47, r"$c$", fontsize=26)
+    plt.text(3.02, 0, r"$m$", fontsize=26)
+
+    plt.text(2.3, 1.1, r"$c(m_{t})$", fontsize=22, fontweight="bold")
+    plt.text(baseEx_inf.solution[0].mNrmSS - 0.05, -0.1, "m̌", fontsize=26)
+    plt.legend()
